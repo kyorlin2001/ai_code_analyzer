@@ -1,14 +1,15 @@
 ---
-title: Streamlit Template Space
+title: Code Analysis Tool
 emoji: 🚀
 colorFrom: red
 colorTo: red
 sdk: docker
 app_port: 8501
 tags:
-  - streamlit
+- streamlit
 pinned: false
-short_description: Streamlit template space
+short_description: Code Analysis Tool for my portfolio
+license: apache-2.0
 ---
 
 # Welcome to Streamlit!
