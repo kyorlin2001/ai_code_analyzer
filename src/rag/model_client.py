@@ -16,12 +16,12 @@ class ModelResponse:
     """
 
     text: str
-    raw_response: dict[str, Any] | None = None
+    raw_response: dict[str, Any] | list[Any] | None = None
 
 
 class ModelClient:
     """
-    Client for a hosted chat-completion style model API.
+    Client for the Hugging Face Serverless Inference API.
     """
 
     def __init__(self, config: ModelConfig | None = None) -> None:
@@ -36,14 +36,18 @@ class ModelClient:
         if not self.config.api_key:
             raise ValueError("MODEL_API_KEY is not configured.")
 
+        full_prompt = (
+            f"{prompt.system_prompt}\n\n"
+            f"{prompt.user_prompt}"
+        )
+
         payload = {
-            "model": self.config.model_name,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens,
-            "messages": [
-                {"role": "system", "content": prompt.system_prompt},
-                {"role": "user", "content": prompt.user_prompt},
-            ],
+            "inputs": full_prompt,
+            "parameters": {
+                "temperature": self.config.temperature,
+                "max_new_tokens": self.config.max_tokens,
+                "return_full_text": False,
+            },
         }
 
         headers = {
@@ -64,25 +68,27 @@ class ModelClient:
 
         return ModelResponse(text=text, raw_response=data)
 
-    def _extract_text(self, data: dict[str, Any]) -> str:
+    def _extract_text(self, data: dict[str, Any] | list[Any]) -> str:
         """
-        Extract text from a chat-completion style response.
+        Extract text from Hugging Face inference responses.
 
-        Supports responses shaped like:
-        - {"choices": [{"message": {"content": "..."}}]}
-        - {"output_text": "..."}
+        Common shapes:
+        - [{"generated_text": "..."}]
+        - {"generated_text": "..."}
         - {"text": "..."}
         """
-        if "choices" in data and data["choices"]:
-            first_choice = data["choices"][0]
-            message = first_choice.get("message", {})
-            content = message.get("content")
-            if isinstance(content, str):
-                return content.strip()
+        if isinstance(data, list) and data:
+            first = data[0]
+            if isinstance(first, dict):
+                for key in ("generated_text", "text", "content"):
+                    value = first.get(key)
+                    if isinstance(value, str):
+                        return value.strip()
 
-        for key in ("output_text", "text", "content"):
-            value = data.get(key)
-            if isinstance(value, str):
-                return value.strip()
+        if isinstance(data, dict):
+            for key in ("generated_text", "text", "content"):
+                value = data.get(key)
+                if isinstance(value, str):
+                    return value.strip()
 
-        raise ValueError("Could not extract model text from response.")
+        raise ValueError("Could not extract model text from Hugging Face response.")

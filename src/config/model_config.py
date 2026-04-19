@@ -10,8 +10,8 @@ class ModelConfig:
     Configuration for the hosted model and RAG behavior.
     """
 
-    provider_name: str = "hosted_model"
-    model_name: str = "gpt-4.1-mini"
+    provider_name: str = "huggingface"
+    model_name: str = "Qwen/Qwen2.5-7B-Instruct"
     api_base_url: str | None = None
     api_key: str | None = None
 
@@ -36,8 +36,8 @@ class ModelConfig:
         - RAG_MAX_CONTEXT_CHARS
         """
         return cls(
-            provider_name=os.getenv("MODEL_PROVIDER_NAME", "hosted_model"),
-            model_name=os.getenv("MODEL_NAME", "gpt-4.1-mini"),
+            provider_name=os.getenv("MODEL_PROVIDER_NAME", "huggingface"),
+            model_name=os.getenv("MODEL_NAME", "Qwen/Qwen2.5-7B-Instruct"),
             api_base_url=os.getenv("MODEL_API_BASE_URL"),
             api_key=os.getenv("MODEL_API_KEY"),
             temperature=float(os.getenv("MODEL_TEMPERATURE", "0.2")),
@@ -45,6 +45,3 @@ class ModelConfig:
             top_k=int(os.getenv("RAG_TOP_K", "5")),
             max_context_chars=int(os.getenv("RAG_MAX_CONTEXT_CHARS", "24000")),
         )
-
-
-DEFAULT_MODEL_CONFIG = ModelConfig.from_env()
