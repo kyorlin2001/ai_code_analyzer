@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from huggingface_hub import InferenceClient
+from smolagents import HfApiModel
 
 from config.model_config import ModelConfig
 from rag.prompt_builder import PromptBundle
@@ -21,19 +21,19 @@ class ModelResponse:
 
 class ModelClient:
     """
-    Client for Hugging Face InferenceClient.
+    Client for Hugging Face smolagents HfApiModel.
     """
 
     def __init__(self, config: ModelConfig | None = None) -> None:
         self.config = config or ModelConfig.from_env()
 
         if not self.config.api_key:
-            raise ValueError("MODEL_API_KEY is not configured.")
+            raise ValueError("HF_TOKEN is not configured.")
         if not self.config.model_name:
             raise ValueError("MODEL_NAME is not configured.")
 
-        self.client = InferenceClient(
-            model=self.config.model_name,
+        self.model = HfApiModel(
+            model_id=self.config.model_name,
             token=self.config.api_key,
         )
 
@@ -44,14 +44,9 @@ class ModelClient:
         full_prompt = self._build_prompt(prompt)
 
         try:
-            response = self.client.text_generation(
-                full_prompt,
-                max_new_tokens=self.config.max_tokens,
-                temperature=self.config.temperature,
-                return_full_text=False,
-            )
+            response = self.model(full_prompt)
         except Exception as exc:
-            raise RuntimeError(f"Hugging Face inference request failed: {exc}") from exc
+            raise RuntimeError(f"Hugging Face model request failed: {exc}") from exc
 
         text = self._extract_text(response)
         return ModelResponse(text=text, raw_response=response)
@@ -64,25 +59,18 @@ class ModelClient:
 
     def _extract_text(self, response: Any) -> str:
         """
-        Normalize HF text generation outputs.
+        Normalize smolagents/HF model outputs.
         """
         if isinstance(response, str):
             return response.strip()
 
-        if isinstance(response, list) and response:
-            first = response[0]
-            if isinstance(first, str):
-                return first.strip()
-            if isinstance(first, dict):
-                for key in ("generated_text", "text", "content"):
-                    value = first.get(key)
-                    if isinstance(value, str):
-                        return value.strip()
-
         if isinstance(response, dict):
-            for key in ("generated_text", "text", "content"):
+            for key in ("generated_text", "text", "content", "answer"):
                 value = response.get(key)
                 if isinstance(value, str):
                     return value.strip()
 
-        raise ValueError("Could not extract model text from Hugging Face response.")
+        if hasattr(response, "content") and isinstance(response.content, str):
+            return response.content.strip()
+
+        return str(response).strip()

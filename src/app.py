@@ -11,7 +11,7 @@ from tools.repo_loader import load_repository_from_zip
 
 st.set_page_config(page_title="Agentic Code Analyst", layout="wide")
 st.title("Agentic Code Analyst 🤖")
-st.write("Analyze a local repo, zip archive, or GitHub repository.")
+st.write("Analyze a zip archive, or GitHub repository.")
 
 
 if "last_result" not in st.session_state:
@@ -26,7 +26,7 @@ if "repo_root_path" not in st.session_state:
 
 input_mode = st.radio(
     "Choose input type",
-    ["Local folder path", "Zip file upload", "GitHub repository"],
+    ["Zip file upload", "GitHub repository"],
     horizontal=True,
 )
 
