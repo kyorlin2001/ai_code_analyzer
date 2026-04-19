@@ -61,6 +61,7 @@ class AnalysisOrchestrator:
             metadata={
                 "focus": focus,
                 "rag_question": rag_question,
+                "rag_enabled": self.enable_rag,
             },
             baseline_findings=baseline_findings or [],
         )
@@ -105,6 +106,8 @@ class AnalysisOrchestrator:
             recommendations=merged.recommendations,
             metadata={
                 **base_report.metadata,
+                "rag_enabled": self.enable_rag,
+                "rag_question": rag_question,
                 "rag": {
                     "answer": merged.rag_answer,
                     "suggestions": merged.rag_suggestions,
@@ -185,6 +188,7 @@ class AnalysisOrchestrator:
                 "repo_path": state.repo_path,
                 "focus": state.metadata.get("focus"),
                 "rag_question": state.metadata.get("rag_question"),
+                "rag_enabled": state.metadata.get("rag_enabled"),
                 "agent_outputs": state.agent_outputs,
             },
         )

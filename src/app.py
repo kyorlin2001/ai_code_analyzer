@@ -60,6 +60,16 @@ focus = st.selectbox(
     index=0,
 )
 
+enable_rag = st.checkbox("Enable RAG follow-up questions", value=True)
+
+rag_question = ""
+if enable_rag:
+    rag_question = st.text_area(
+        "Optional RAG question",
+        placeholder="What should I improve in this repository?",
+        height=100,
+    )
+
 baseline_file = st.file_uploader(
     "Optional baseline findings JSON for regression analysis",
     type=["json"],
@@ -82,7 +92,7 @@ run_button = st.button("Run analysis")
 if run_button:
     try:
         with st.spinner("Analyzing repository..."):
-            orchestrator = AnalysisOrchestrator()
+            orchestrator = AnalysisOrchestrator(enable_rag=enable_rag)
             repo_data = None
             resolved_repo_path = ""
 
@@ -96,6 +106,7 @@ if run_button:
                     repo_path=resolved_repo_path,
                     focus=focus,
                     baseline_findings=baseline_findings,
+                    rag_question=rag_question.strip() or None,
                 )
 
             elif input_mode == "Zip file upload":
@@ -116,6 +127,7 @@ if run_button:
                     focus=focus,
                     baseline_findings=baseline_findings,
                     repo_data=repo_data,
+                    rag_question=rag_question.strip() or None,
                 )
 
             else:
@@ -138,6 +150,7 @@ if run_button:
                     focus=focus,
                     baseline_findings=baseline_findings,
                     repo_data=repo_data,
+                    rag_question=rag_question.strip() or None,
                 )
 
             st.session_state.last_result = result
