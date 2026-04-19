@@ -11,7 +11,7 @@ class ModelConfig:
     """
 
     provider_name: str = "huggingface"
-    model_name: str = "Qwen/Qwen2.5-Coder-32B-Instruct:together"
+    model_name: str = "meta-llama/Llama-3.1-8B-Instruct"
     api_key: str | None = None
 
     temperature: float = 0.2

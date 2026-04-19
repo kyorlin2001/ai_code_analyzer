@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from smolagents import HfApiModel
+from smolagents import CodeAgent, InferenceClientModel
 
 from config.model_config import ModelConfig
 from rag.prompt_builder import PromptBundle
@@ -32,7 +32,7 @@ class ModelClient:
         if not self.config.model_name:
             raise ValueError("MODEL_NAME is not configured.")
 
-        self.model = HfApiModel(
+        self.model = InferenceClientModel(
             model_id=self.config.model_name,
             token=self.config.api_key,
         )
