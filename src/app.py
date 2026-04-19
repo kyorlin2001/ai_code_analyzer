@@ -20,6 +20,8 @@ if "zip_temp_dir" not in st.session_state:
     st.session_state.zip_temp_dir = None
 if "github_temp_dir" not in st.session_state:
     st.session_state.github_temp_dir = None
+if "repo_root_path" not in st.session_state:
+    st.session_state.repo_root_path = None
 
 
 input_mode = st.radio(
@@ -81,14 +83,17 @@ if run_button:
     try:
         with st.spinner("Analyzing repository..."):
             orchestrator = AnalysisOrchestrator()
+            repo_data = None
+            resolved_repo_path = ""
 
             if input_mode == "Local folder path":
                 if not repo_path.strip():
                     st.error("Please enter a folder path.")
                     st.stop()
 
+                resolved_repo_path = repo_path.strip()
                 result = orchestrator.run_analysis(
-                    repo_path=repo_path.strip(),
+                    repo_path=resolved_repo_path,
                     focus=focus,
                     baseline_findings=baseline_findings,
                 )
@@ -103,12 +108,14 @@ if run_button:
                     uploaded_zip.name,
                 )
                 st.session_state.zip_temp_dir = loaded.temp_dir
+                repo_data = loaded.data
+                resolved_repo_path = loaded.data.root_dir or ""
 
                 result = orchestrator.run_analysis(
-                    repo_path=loaded.data.root_dir or "",
+                    repo_path=resolved_repo_path,
                     focus=focus,
                     baseline_findings=baseline_findings,
-                    repo_data=loaded.data,
+                    repo_data=repo_data,
                 )
 
             else:
@@ -123,15 +130,18 @@ if run_button:
                     token=github_token.strip() or None,
                 )
                 st.session_state.github_temp_dir = loaded.temp_dir
+                repo_data = loaded.data
+                resolved_repo_path = loaded.data.root_dir or ""
 
                 result = orchestrator.run_analysis(
-                    repo_path=loaded.data.root_dir or "",
+                    repo_path=resolved_repo_path,
                     focus=focus,
                     baseline_findings=baseline_findings,
-                    repo_data=loaded.data,
+                    repo_data=repo_data,
                 )
 
             st.session_state.last_result = result
+            st.session_state.repo_root_path = resolved_repo_path
 
     except Exception as exc:
         st.error(f"Analysis failed: {exc}")
@@ -155,6 +165,31 @@ if result:
             st.write(f"- **[{severity}]** {message}")
     else:
         st.write("No findings reported.")
+
+    if result.rag_answer:
+        st.divider()
+        st.subheader("RAG Answer")
+        st.write(result.rag_answer)
+
+        if result.rag_suggestions:
+            st.subheader("RAG Suggestions")
+            for suggestion in result.rag_suggestions:
+                st.write(f"- {suggestion}")
+
+        if result.rag_citations:
+            st.subheader("RAG Citations")
+            for citation in result.rag_citations:
+                st.write(f"- {citation.get('label', citation)}")
+
+        if result.rag_follow_up_questions:
+            st.subheader("RAG Follow-up Questions")
+            for item in result.rag_follow_up_questions:
+                st.write(f"- {item}")
+
+        if result.rag_notes:
+            st.subheader("RAG Notes")
+            for note in result.rag_notes:
+                st.write(f"- {note}")
 
     with st.expander("Raw metadata"):
         st.json(result.metadata)
