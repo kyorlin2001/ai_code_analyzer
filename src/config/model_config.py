@@ -36,7 +36,7 @@ class ModelConfig:
         return cls(
             provider_name=os.getenv("MODEL_PROVIDER_NAME", "huggingface"),
             model_name=os.getenv("MODEL_NAME", "Qwen/Qwen2.5-Coder-32B-Instruct"),
-            api_key=os.getenv("MODEL_KEY_API"),
+            api_key=os.getenv("MODEL_API_KEY"),
             temperature=float(os.getenv("MODEL_TEMPERATURE", "0.2")),
             max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "1200")),
             top_k=int(os.getenv("RAG_TOP_K", "5")),
