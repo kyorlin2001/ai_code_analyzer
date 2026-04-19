@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from smolagents import CodeAgent, InferenceClientModel
+from huggingface_hub import InferenceClient
 
 from config.model_config import ModelConfig
 from rag.prompt_builder import PromptBundle
@@ -21,7 +21,7 @@ class ModelResponse:
 
 class ModelClient:
     """
-    Client for Hugging Face smolagents HfApiModel.
+    Client for Hugging Face InferenceClient using chat_completion.
     """
 
     def __init__(self, config: ModelConfig | None = None) -> None:
@@ -32,8 +32,8 @@ class ModelClient:
         if not self.config.model_name:
             raise ValueError("MODEL_NAME is not configured.")
 
-        self.model = InferenceClientModel(
-            model_id=self.config.model_name,
+        self.client = InferenceClient(
+            model=self.config.model_name,
             token=self.config.api_key,
         )
 
@@ -41,10 +41,16 @@ class ModelClient:
         """
         Send a prompt to the hosted model and return the model's response text.
         """
-        full_prompt = self._build_prompt(prompt)
+        prompt_txt = self._build_prompt(prompt)
 
         try:
-            response = self.model(full_prompt)
+            response = self.client.chat_completion(
+                messages=[
+                    {"role": "user", "content": prompt_txt}
+                ],
+                max_tokens=self.config.max_tokens,
+                temperature=self.config.temperature,
+            )
         except Exception as exc:
             raise RuntimeError(f"Hugging Face model request failed: {exc}") from exc
 
@@ -59,18 +65,13 @@ class ModelClient:
 
     def _extract_text(self, response: Any) -> str:
         """
-        Normalize smolagents/HF model outputs.
+        Extract text from the HF chat completion response.
         """
-        if isinstance(response, str):
-            return response.strip()
+        try:
+            content = response.choices[0].message.content
+            if isinstance(content, str):
+                return content.strip()
+        except Exception:
+            pass
 
-        if isinstance(response, dict):
-            for key in ("generated_text", "text", "content", "answer"):
-                value = response.get(key)
-                if isinstance(value, str):
-                    return value.strip()
-
-        if hasattr(response, "content") and isinstance(response.content, str):
-            return response.content.strip()
-
-        return str(response).strip()
+        raise ValueError("Could not extract model text from Hugging Face response.")
