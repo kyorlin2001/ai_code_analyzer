@@ -34,7 +34,7 @@ class ModelConfig:
         - RAG_MAX_CONTEXT_CHARS
         """
         return cls(
-            provider_name=os.getenv("MODEL_PROVIDER_NAME", "huggingface"),
+            provider_name=os.getenv("MODEL_PROVIDER_NAME", "together"),
             model_name=os.getenv("MODEL_NAME", "Qwen/Qwen2.5-Coder-32B-Instruct"),
             api_key=os.getenv("MODEL_API_KEY"),
             temperature=float(os.getenv("MODEL_TEMPERATURE", "0.2")),
