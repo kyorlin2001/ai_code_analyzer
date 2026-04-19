@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from openai import OpenAI
+from huggingface_hub import InferenceClient
 
 from config.model_config import ModelConfig
 from rag.prompt_builder import PromptBundle
@@ -21,48 +21,68 @@ class ModelResponse:
 
 class ModelClient:
     """
-    Client for Hugging Face's OpenAI-compatible router API.
+    Client for Hugging Face InferenceClient.
     """
 
     def __init__(self, config: ModelConfig | None = None) -> None:
         self.config = config or ModelConfig.from_env()
 
-        if not self.config.api_base_url:
-            raise ValueError("MODEL_API_BASE_URL is not configured.")
         if not self.config.api_key:
             raise ValueError("MODEL_API_KEY is not configured.")
+        if not self.config.model_name:
+            raise ValueError("MODEL_NAME is not configured.")
 
-        self.client = OpenAI(
-            base_url=self.config.api_base_url,
-            api_key=self.config.api_key,
+        self.client = InferenceClient(
+            model=self.config.model_name,
+            token=self.config.api_key,
         )
 
     def complete(self, prompt: PromptBundle) -> ModelResponse:
         """
         Send a prompt to the hosted model and return the model's response text.
         """
-        response = self.client.chat.completions.create(
-            model=self.config.model_name,
-            temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
-            messages=[
-                {"role": "system", "content": prompt.system_prompt},
-                {"role": "user", "content": prompt.user_prompt},
-            ],
-        )
+        full_prompt = self._build_prompt(prompt)
+
+        try:
+            response = self.client.text_generation(
+                full_prompt,
+                max_new_tokens=self.config.max_tokens,
+                temperature=self.config.temperature,
+                return_full_text=False,
+            )
+        except Exception as exc:
+            raise RuntimeError(f"Hugging Face inference request failed: {exc}") from exc
 
         text = self._extract_text(response)
         return ModelResponse(text=text, raw_response=response)
 
+    def _build_prompt(self, prompt: PromptBundle) -> str:
+        return (
+            f"{prompt.system_prompt}\n\n"
+            f"{prompt.user_prompt}"
+        )
+
     def _extract_text(self, response: Any) -> str:
         """
-        Extract text from an OpenAI-compatible chat completion response.
+        Normalize HF text generation outputs.
         """
-        try:
-            content = response.choices[0].message.content
-            if isinstance(content, str):
-                return content.strip()
-        except Exception:
-            pass
+        if isinstance(response, str):
+            return response.strip()
 
-        raise ValueError("Could not extract model text from response.")
+        if isinstance(response, list) and response:
+            first = response[0]
+            if isinstance(first, str):
+                return first.strip()
+            if isinstance(first, dict):
+                for key in ("generated_text", "text", "content"):
+                    value = first.get(key)
+                    if isinstance(value, str):
+                        return value.strip()
+
+        if isinstance(response, dict):
+            for key in ("generated_text", "text", "content"):
+                value = response.get(key)
+                if isinstance(value, str):
+                    return value.strip()
+
+        raise ValueError("Could not extract model text from Hugging Face response.")

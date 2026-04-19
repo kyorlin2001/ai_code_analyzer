@@ -12,7 +12,6 @@ class ModelConfig:
 
     provider_name: str = "huggingface"
     model_name: str = "Qwen/Qwen2.5-Coder-32B-Instruct"
-    api_base_url: str | None = "https://router.huggingface.co/v1"
     api_key: str | None = None
 
     temperature: float = 0.2
@@ -28,8 +27,7 @@ class ModelConfig:
         Supported environment variables:
         - MODEL_PROVIDER_NAME
         - MODEL_NAME
-        - MODEL_API_BASE_URL
-        - MODEL_API_KEY
+        - HF_TOKEN
         - MODEL_TEMPERATURE
         - MODEL_MAX_TOKENS
         - RAG_TOP_K
@@ -38,8 +36,7 @@ class ModelConfig:
         return cls(
             provider_name=os.getenv("MODEL_PROVIDER_NAME", "huggingface"),
             model_name=os.getenv("MODEL_NAME", "Qwen/Qwen2.5-Coder-32B-Instruct"),
-            api_base_url=os.getenv("MODEL_API_BASE_URL", "https://router.huggingface.co/v1"),
-            api_key=os.getenv("MODEL_API_KEY"),
+            api_key=os.getenv("HF_TOKEN"),
             temperature=float(os.getenv("MODEL_TEMPERATURE", "0.2")),
             max_tokens=int(os.getenv("MODEL_MAX_TOKENS", "1200")),
             top_k=int(os.getenv("RAG_TOP_K", "5")),
