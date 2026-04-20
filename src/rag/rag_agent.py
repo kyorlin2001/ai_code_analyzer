@@ -76,9 +76,10 @@ class RagAgent:
             "retrieved_count": len(retrieval.chunks),
             "selected_count": len(selected_chunks),
             "selected_files": [chunk.file_path for chunk in selected_chunks],
+            "selected_chunk_previews": [chunk.text[:500] for chunk in selected_chunks[:5]],
             "budget_truncated": budget_result.truncated,
             "budget_total_characters": budget_result.total_characters,
-            "prompt_preview": prompt.user_prompt[:2000],
+            "prompt_preview": prompt.user_prompt[:4000],
         }
 
         return RagResult(

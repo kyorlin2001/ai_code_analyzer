@@ -204,12 +204,33 @@ if result:
             for note in result.rag_notes:
                 st.write(f"- {note}")
 
+        rag_debug = {}
+        if isinstance(result.metadata, dict):
+            rag_debug = result.metadata.get("rag", {}) or {}
+
+        if rag_debug:
+            with st.expander("RAG Debug Info"):
+                st.json(rag_debug)
+
+                prompt_preview = rag_debug.get("prompt_preview")
+                if prompt_preview:
+                    st.subheader("Prompt Preview")
+                    st.text(prompt_preview)
+
+                selected_files = rag_debug.get("selected_files", [])
+                if selected_files:
+                    st.subheader("Selected Files")
+                    for file_path in selected_files:
+                        st.write(f"- {file_path}")
+
+                selected_chunk_previews = rag_debug.get("selected_chunk_previews", [])
+                if selected_chunk_previews:
+                    st.subheader("Selected Chunk Previews")
+                    for i, preview in enumerate(selected_chunk_previews, start=1):
+                        st.markdown(f"**Chunk {i}**")
+                        st.code(preview)
+
     with st.expander("Raw metadata"):
         st.json(result.metadata)
-
-    rag_debug = result.metadata.get("rag", {}) if isinstance(result.metadata, dict) else {}
-    if rag_debug:
-        with st.expander("RAG Debug Info"):
-            st.json(rag_debug)
 else:
     st.info("Run an analysis to see results here.")
