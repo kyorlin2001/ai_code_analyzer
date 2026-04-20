@@ -12,6 +12,7 @@ from config.model_config import ModelConfig
 from models.analysis_result import AnalysisResult
 from models.analysis_state import AnalysisState
 from rag import AnswerMerger, ChunkIndex, RagAgent, RagAgentInput, RepoChunkLoader, Retriever
+from rag.retriever import RetrievalPolicy
 from tools.repo_loader import RepositoryData, load_repository
 
 
@@ -130,6 +131,8 @@ class AnalysisOrchestrator:
         state: AnalysisState,
         question: str,
     ):
+        config = ModelConfig().from_env()
+
         if self.rag_agent is not None:
             rag_agent = self.rag_agent
         else:
@@ -137,10 +140,22 @@ class AnalysisOrchestrator:
             bundle = loader.load_from_files(repo_path, repo_data.files)
             index = ChunkIndex()
             index.add_chunks(bundle.chunks)
-            retriever = Retriever(index)
+
+            retriever = Retriever(
+                index,
+                policy=RetrievalPolicy(
+                    max_chunks_cap=config.retrieval_max_chunks_cap,
+                    max_context_chars=config.max_context_chars,
+                    max_chunks_per_file=config.retrieval_max_chunks_per_file,
+                    small_repo_file_threshold=config.retrieval_small_repo_file_threshold,
+                    large_repo_file_threshold=config.retrieval_large_repo_file_threshold,
+                    coverage_ratio=config.retrieval_coverage_ratio,
+                ),
+            )
+
             rag_agent = RagAgent(
                 retriever=retriever,
-                config=ModelConfig.from_env(),
+                config=config,
             )
 
         return rag_agent.run(

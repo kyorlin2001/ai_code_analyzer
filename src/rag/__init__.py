@@ -9,7 +9,7 @@ from rag.model_client import ModelClient, ModelResponse
 from rag.prompt_builder import PromptBundle, PromptBuilder
 from rag.rag_agent import RagAgent, RagAgentInput
 from rag.repo_chunk_loader import LoadedChunkBundle, RepoChunkLoader
-from rag.retriever import Retriever, RetrievalResult
+from rag.retriever import Retriever, RetrievalResult, RetrievalPolicy
 
 __all__ = [
     "AnswerMerger",
@@ -31,4 +31,5 @@ __all__ = [
     "RepoChunkLoader",
     "Retriever",
     "RetrievalResult",
+    "RetrievalPolicy",
 ]

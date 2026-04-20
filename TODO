@@ -1,0 +1,21 @@
+TODO List
+RAG / Retrieval improvements
+Inspect how retrieval selects chunks and confirm where k is set
+Design an adaptive retrieval strategy based on repo size
+Ensure at least one chunk is selected per file, if feasible
+Add a cap to prevent prompt overload for large repos
+Balance coverage vs. relevance with a hybrid retrieval approach
+Quality / analysis improvements
+Reduce repeated context from the same file
+Improve file coverage in analysis output
+Test how retrieval behaves on small, medium, and large repos
+Verify model output quality when more chunks are included
+Debugging / validation
+Remove remaining debug prints if any remain
+Add temporary logging for retrieval count and chunk coverage
+Validate prompt construction end-to-end after retrieval changes
+Run a few sample analyses and compare results before/after
+Optional follow-ups
+Add a summary of how many files were represented in the final prompt
+Add configuration for retrieval limits
+Consider batching if full-repo coverage exceeds context limits
