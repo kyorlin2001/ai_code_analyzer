@@ -56,8 +56,6 @@ class PromptBuilder:
         findings: list[dict[str, Any]],
     ) -> str:
         lines: list[str] = []
-        #just a test remove later.
-        question = "Find potential issuues in the codebase"
 
         lines.append(f"Question: {question}")
 

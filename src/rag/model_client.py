@@ -42,8 +42,6 @@ class ModelClient:
         Send a prompt to the hosted model and return the model's response text.
         """
         prompt_txt = self._build_prompt(prompt)
-        print("PROMPT LENGTH:", len(prompt_txt))
-        print("PROMPT PREVIEW:", prompt_txt[:3000])
 
         try:
             response = self.client.chat_completion(
@@ -55,9 +53,6 @@ class ModelClient:
             )
         except Exception as exc:
             raise RuntimeError(f"Hugging Face model request failed: {exc}") from exc
-
-        print("MODEL RESPONSE:", response)
-        print("MODEL RESPONSE CHOICES:", getattr(response, "choices", None))
 
         text = self._extract_text(response)
         return ModelResponse(text=text, raw_response=response)
