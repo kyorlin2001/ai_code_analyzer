@@ -30,10 +30,10 @@ class PromptBuilder:
     ) -> PromptBundle:
         system_prompt = (
             "You are an expert software analysis assistant.\n"
-            "Answer using only the provided repository context when possible.\n"
-            "If evidence is insufficient, say so clearly.\n"
-            "Provide practical improvement suggestions when relevant.\n"
-            "Prefer concise, grounded answers with file references."
+            "Answer using the repository context provided below.\n"
+            "If the context is insufficient, say what is missing.\n"
+            "Be specific and practical.\n"
+            "Reference files or chunks when helpful."
         )
 
         user_prompt = self._build_user_prompt(
