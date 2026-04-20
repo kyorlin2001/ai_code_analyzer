@@ -30,10 +30,10 @@ class PromptBuilder:
     ) -> PromptBundle:
         system_prompt = (
             "You are an expert software analysis assistant.\n"
-            "Answer using the repository context provided below.\n"
-            "If the context is insufficient, say what is missing.\n"
-            "Be specific and practical.\n"
-            "Reference files or chunks when helpful."
+            "Use the repository context provided in the user prompt.\n"
+            "If the context is insufficient, say exactly what is missing.\n"
+            "Be specific, practical, and grounded in the evidence.\n"
+            "Prefer file names, code snippets, and concrete suggestions."
         )
 
         user_prompt = self._build_user_prompt(
@@ -68,4 +68,28 @@ class PromptBuilder:
             for finding in findings:
                 severity = finding.get("severity", "info")
                 message = finding.get("message", "")
-                lines
+                lines.append(f"- [{severity}] {message}")
+
+        lines.append("")
+        lines.append("Repository context:")
+
+        if not chunks:
+            lines.append("- No relevant chunks were retrieved.")
+        else:
+            for index, chunk in enumerate(chunks, start=1):
+                lines.append("")
+                lines.append(f"Context block {index}:")
+                lines.append(f"File: {chunk.file_path}")
+                if chunk.start_line is not None and chunk.end_line is not None:
+                    lines.append(f"Lines: {chunk.start_line}-{chunk.end_line}")
+                if chunk.language:
+                    lines.append(f"Language: {chunk.language}")
+                lines.append("Content:")
+                lines.append(chunk.text)
+
+        lines.append("")
+        lines.append("Instructions:")
+        lines.append("- Answer using the repository context above.")
+        lines.append("- If you suggest improvements, make them specific and actionable.")
+        lines.append("- If the context is insufficient, explain what is missing.")
+        lines.append("- Do not ask for repository files again unless no context was retrieved.")
