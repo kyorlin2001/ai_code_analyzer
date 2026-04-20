@@ -54,6 +54,9 @@ class ModelClient:
         except Exception as exc:
             raise RuntimeError(f"Hugging Face model request failed: {exc}") from exc
 
+        print("MODEL RESPONSE:", response)
+        print("MODEL RESPONSE CHOICES:", getattr(response, "choices", None))
+
         text = self._extract_text(response)
         return ModelResponse(text=text, raw_response=response)
 
@@ -64,24 +67,20 @@ class ModelClient:
         )
 
     def _extract_text(self, response: Any) -> str:
-        print("HF RESPONSE TYPE:", type(response))
-        print("HF RESPONSE REPR:", repr(response))
-
         choices = getattr(response, "choices", None)
-        print("HF CHOICES:", choices)
+        if not choices:
+            raise ValueError(f"No choices found in HF response: {response!r}")
 
-        if choices and len(choices) > 0:
-            first_choice = choices[0]
-            message = getattr(first_choice, "message", None)
-            print("HF MESSAGE:", message)
+        first_choice = choices[0]
+        if first_choice is None:
+            raise ValueError(f"First choice is None in HF response: {response!r}")
 
-            if message is not None:
-                content = getattr(message, "content", None)
-                print("HF CONTENT:", content)
-                if isinstance(content, str):
-                    return content.strip()
+        message = getattr(first_choice, "message", None)
+        if message is None:
+            raise ValueError(f"No message in first choice: {response!r}")
 
-        if isinstance(response, str):
-            return response.strip()
+        content = getattr(message, "content", None)
+        if isinstance(content, str):
+            return content.strip()
 
-        raise ValueError(f"Could not extract model text from Hugging Face response: {type(response)}")
+        raise ValueError(f"No string content in HF response: {response!r}")
