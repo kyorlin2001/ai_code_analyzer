@@ -64,20 +64,22 @@ class ModelClient:
         )
 
     def _extract_text(self, response: Any) -> str:
-        """
-        Extract text from the HF chat completion response.
-        """
-        try:
-            choices = getattr(response, "choices", None)
-            if choices and len(choices) > 0:
-                first_choice = choices[0]
-                message = getattr(first_choice, "message", None)
-                if message is not None:
-                    content = getattr(message, "content", None)
-                    if isinstance(content, str):
-                        return content.strip()
-        except Exception:
-            pass
+        print("HF RESPONSE TYPE:", type(response))
+        print("HF RESPONSE REPR:", repr(response))
+
+        choices = getattr(response, "choices", None)
+        print("HF CHOICES:", choices)
+
+        if choices and len(choices) > 0:
+            first_choice = choices[0]
+            message = getattr(first_choice, "message", None)
+            print("HF MESSAGE:", message)
+
+            if message is not None:
+                content = getattr(message, "content", None)
+                print("HF CONTENT:", content)
+                if isinstance(content, str):
+                    return content.strip()
 
         if isinstance(response, str):
             return response.strip()
