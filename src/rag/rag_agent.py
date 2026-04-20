@@ -67,13 +67,30 @@ class RagAgent:
         model_response = self.model_client.complete(prompt)
         parsed = self._parse_response_text(model_response.text)
 
+        citations = [
+            self.citation_formatter.format_chunk(chunk).__dict__
+            for chunk in selected_chunks
+        ]
+
+        debug_info = {
+            "retrieved_count": len(retrieval.chunks),
+            "selected_count": len(selected_chunks),
+            "selected_files": [chunk.file_path for chunk in selected_chunks],
+            "budget_truncated": budget_result.truncated,
+            "budget_total_characters": budget_result.total_characters,
+            "prompt_preview": prompt.user_prompt[:2000],
+        }
+
         rag_result = RagResult(
             answer=parsed["answer"],
             suggestions=parsed["suggestions"],
-            citations=[self.citation_formatter.format_chunk(chunk).__dict__ for chunk in selected_chunks],
+            citations=citations,
             follow_up_questions=parsed["follow_up_questions"],
             notes=parsed["notes"],
-            raw_response=model_response.raw_response,
+            raw_response={
+                "model_response": model_response.raw_response,
+                "debug_info": debug_info,
+            },
         )
 
         return rag_result

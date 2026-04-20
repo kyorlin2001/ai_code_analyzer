@@ -204,6 +204,11 @@ if result:
             for note in result.rag_notes:
                 st.write(f"- {note}")
 
+        if result.rag_notes or result.rag_citations:
+            with st.expander("RAG Debug Info"):
+                rag_debug = result.metadata.get("rag", {})
+                st.json(rag_debug)
+
     with st.expander("Raw metadata"):
         st.json(result.metadata)
 else:
