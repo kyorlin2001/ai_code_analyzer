@@ -42,6 +42,8 @@ class ModelClient:
         Send a prompt to the hosted model and return the model's response text.
         """
         prompt_txt = self._build_prompt(prompt)
+        print("PROMPT LENGTH:", len(prompt_txt))
+        print("PROMPT PREVIEW:", prompt_txt[:3000])
 
         try:
             response = self.client.chat_completion(
