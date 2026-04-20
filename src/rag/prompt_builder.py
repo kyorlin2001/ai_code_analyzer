@@ -95,3 +95,4 @@ class PromptBuilder:
         lines.append("- If you suggest improvements, make them specific and actionable.")
         lines.append("- If the context is insufficient, explain what is missing.")
         lines.append("- Do not ask for repository files again unless no context was retrieved.")
+        return "\n".join(lines)
