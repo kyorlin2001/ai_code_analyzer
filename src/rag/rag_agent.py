@@ -81,7 +81,7 @@ class RagAgent:
             "prompt_preview": prompt.user_prompt[:2000],
         }
 
-        rag_result = RagResult(
+        return RagResult(
             answer=parsed["answer"],
             suggestions=parsed["suggestions"],
             citations=citations,
@@ -93,7 +93,7 @@ class RagAgent:
             },
         )
 
-        return rag_result
+       # return rag_result
 
     def _parse_response_text(self, text: str) -> dict[str, Any]:
         """
