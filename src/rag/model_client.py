@@ -68,10 +68,18 @@ class ModelClient:
         Extract text from the HF chat completion response.
         """
         try:
-            content = response.choices[0].message.content
-            if isinstance(content, str):
-                return content.strip()
+            choices = getattr(response, "choices", None)
+            if choices and len(choices) > 0:
+                first_choice = choices[0]
+                message = getattr(first_choice, "message", None)
+                if message is not None:
+                    content = getattr(message, "content", None)
+                    if isinstance(content, str):
+                        return content.strip()
         except Exception:
             pass
 
-        raise ValueError("Could not extract model text from Hugging Face response.")
+        if isinstance(response, str):
+            return response.strip()
+
+        raise ValueError(f"Could not extract model text from Hugging Face response: {type(response)}")
